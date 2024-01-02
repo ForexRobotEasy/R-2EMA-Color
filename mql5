@@ -1,0 +1,85 @@
+
+// R 2EMA Color Indicator
+// Developer: Forex Robot Easy Team
+// Website: forexroboteasy.com
+
+#property indicator_chart_window
+
+// Input parameters
+input int EMA_Period1 = 10; // Period for the first EMA
+input int EMA_Period2 = 20; // Period for the second EMA
+
+// Indicator buffers
+double EMA1Buffer[];
+double EMA2Buffer[];
+
+//+------------------------------------------------------------------+
+//| Custom indicator initialization function                         |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Set indicator buffers
+    SetIndexBuffer(0, EMA1Buffer);
+    SetIndexBuffer(1, EMA2Buffer);
+
+    // Set indicator labels
+    SetIndexLabel(0, 'EMA1');
+    SetIndexLabel(1, 'EMA2');
+
+    // Set indicator colors
+    SetIndexStyle(0, DRAW_LINE);
+    SetIndexStyle(1, DRAW_LINE);
+
+    SetIndexDrawBegin(0, EMA_Period2);
+    SetIndexDrawBegin(1, EMA_Period2);
+
+    // Return initialization result
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator iteration function                              |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total, const int prev_calculated, const datetime &time[], const double &open[], const double &high[], const double &low[], const double &close[], const long &tick_volume[], const long &volume[], const int &spread[])
+{
+    // Calculate EMAs
+    if (EMA_Period1 > 0 && EMA_Period2 > 0)
+    {
+        ArraySetAsSeries(EMA1Buffer, true);
+        ArraySetAsSeries(EMA2Buffer, true);
+
+        int limit = rates_total - prev_calculated;
+
+        for (int i = 0; i < limit; i++)
+        {
+            EMA1Buffer[i] = iMA(NULL, 0, EMA_Period1, 0, MODE_EMA, PRICE_CLOSE, i);
+            EMA2Buffer[i] = iMA(NULL, 0, EMA_Period2, 0, MODE_EMA, PRICE_CLOSE, i);
+        }
+    }
+
+    // Detect crossover and color change
+    bool isBuySignal = false;
+    bool isSellSignal = false;
+
+    if (close[0] > EMA1Buffer[0] && close[0] > EMA2Buffer[0] && close[1] < EMA1Buffer[1] && close[1] < EMA2Buffer[1])
+    {
+        isBuySignal = true; // Buy signal detected
+    }
+    else if (close[0] < EMA1Buffer[0] && close[0] < EMA2Buffer[0] && close[1] > EMA1Buffer[1] && close[1] > EMA2Buffer[1])
+    {
+        isSellSignal = true; // Sell signal detected
+    }
+
+    // Generate trade signals
+    if (isBuySignal)
+    {
+        Print('Generate buy trade signal'); // Replace with actual trade signal generation code
+    }
+    else if (isSellSignal)
+    {
+        Print('Generate sell trade signal'); // Replace with actual trade signal generation code
+    }
+
+    // Return calculation result
+    return(rates_total);
+}
